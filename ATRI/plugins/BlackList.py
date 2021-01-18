@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 from nonebot import on_command, CommandSession
 
-import config # type: ignore
+import config
 
 
-master = config.MASTER()
+master = config.SUPERUSERS
 file = Path('.') / 'ATRI' / 'plugins' / 'noobList' / 'noobList.json'
 file1 = Path('.') / 'ATRI' / 'plugins' / 'noobList' / 'noobGroup.json'
 

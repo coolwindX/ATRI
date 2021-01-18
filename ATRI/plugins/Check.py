@@ -6,11 +6,12 @@ from pathlib import Path
 import nonebot
 from nonebot import on_command, CommandSession
 
-import config # type: ignore
+import config
+from ATRI.modules.error import errorBack
 
 
 bot = nonebot.get_bot()
-master = config.MASTER()
+master = config.SUPERUSERS
 file = Path('.') / 'ATRI' / 'plugins' / 'noobList' / 'noobList.json'
 file1 = Path('.') / 'ATRI' / 'plugins' / 'noobList' / 'noobGroup.json'
 
@@ -153,7 +154,7 @@ async def _(session: CommandSession):
 
 
 
-@on_command('check_status', patterns = [r"检查状态|检查运行|检查身体"])
+@on_command('check_status', patterns = [r"检查状态|检查运行|检查身体|查看状态"])
 async def _(session: CommandSession):
     user = session.event.user_id
     group = session.event.group_id
@@ -175,11 +176,14 @@ async def _(session: CommandSession):
         if str(user) in data1.keys():
             pass
         else:
-            cpu = psutil.cpu_percent(interval=1)
-            memory = psutil.virtual_memory().percent
-            disk = psutil.disk_usage('/').percent
-            inteSENT = psutil.net_io_counters().bytes_sent # type: ignore
-            inteRECV = psutil.net_io_counters().bytes_recv # type: ignore
+            try:
+                cpu = psutil.cpu_percent(interval=1)
+                memory = psutil.virtual_memory().percent
+                disk = psutil.disk_usage('/').percent
+                inteSENT = psutil.net_io_counters().bytes_sent # type: ignore
+                inteRECV = psutil.net_io_counters().bytes_recv # type: ignore
+            except:
+                await session.send(errorBack('获取状态数据失败'))
 
             status = 'アトリは、高性能ですから！'
 
@@ -198,3 +202,41 @@ async def _(session: CommandSession):
 * BytesSENT: {inteSENT}
 * BytesRECV: {inteRECV}
 {status}""".strip())
+
+@on_command('getUser', aliases = ['用户总数', '用户数量'])
+async def _(session: CommandSession):
+    try:
+        with open(Path('.') / 'ATRI' / 'modules' / 'favoIMP' / 'user.json', 'r') as f:
+                data = json.load(f)
+    except:
+        data = {}
+    msg0 = f'用户总数: {len(data)}\n'
+    msg0 += f'群总数: {len(await session.bot.get_group_list())}' # type: ignore
+    await session.send(msg0)
+
+
+
+@on_command('trackERROR', aliases = ['track'], only_to_me = False)
+async def _(session: CommandSession):
+    if session.event.user_id in master:
+        msg = session.current_arg.strip()
+        if not msg:
+            msg = session.get('message', prompt = '请发送trackID')
+
+        try:
+            with open(Path('.') / 'ATRI' / 'data' / 'errorData' / 'errorData.json', 'r') as f:
+                data = json.load(f)
+        except:
+            data = {}
+
+        if str(msg) in data.keys():
+            err = data[f"{msg}"]
+            msg0 = f'trackID: {msg}\n'
+            msg0 += err
+            await session.send(msg0)
+
+        else:
+            session.finish('未发现该ID')
+    
+    else:
+        await session.send('恁哪位呀~？')

@@ -1,25 +1,16 @@
 import random
 import nonebot
 import warnings
-from datetime import datetime
-from random import choice
 from nonebot import on_command, CommandSession
 from nonebot.helpers import render_expression
 
-import config # type: ignore
-from ATRI.modules.funcControl import checkNoob # type: ignore
+import config
+from ATRI.modules.time import sleepTime
+from ATRI.modules.funcControl import checkNoob
 
 
 bot = nonebot.get_bot()
-master = config.MASTER()
-
-
-def now_time():
-    now_ = datetime.now()
-    hour = now_.hour
-    minute = now_.minute
-    now = hour + minute / 60
-    return now
+master = config.SUPERUSERS
 
 def countX(lst, x):
     warnings.simplefilter('ignore', ResourceWarning)
@@ -43,18 +34,8 @@ async def _(session: CommandSession):
     user = session.event.user_id
     group = session.event.group_id
     if checkNoob(user, group):
-        if 0 <= now_time() < 5.5:
-            await session.send(
-                choice(
-                    [
-                        'zzzz......',
-                        'zzzzzzzz......',
-                        'zzz...好涩哦..zzz....',
-                        '别...不要..zzz..那..zzz..',
-                        '嘻嘻..zzz..呐~..zzzz..'
-                    ]
-                )
-            )
+        if sleepTime():
+            await session.send(sleepTime())
         else:
             await session.send(
                 str(
@@ -80,18 +61,8 @@ async def _(session: CommandSession):
     user = session.event.user_id
     group = session.event.group_id
     if checkNoob(user, group):
-        if 0 <= now_time() < 5.5:
-            await session.send(
-                choice(
-                    [
-                        'zzzz......',
-                        'zzzzzzzz......',
-                        'zzz...好涩哦..zzz....',
-                        '别...不要..zzz..那..zzz..',
-                        '嘻嘻..zzz..呐~..zzzz..'
-                    ]
-                )
-            )
+        if sleepTime():
+            await session.send(sleepTime())
         else:
             await session.send(
                 str(
@@ -101,7 +72,7 @@ async def _(session: CommandSession):
                 )
             )
 
-@on_command('关于', aliases = ['关于机器人'], only_to_me = False)
+@on_command('关于', aliases = ['关于'])
 async def _(session: CommandSession):
     user = session.event.user_id
     group = session.event.group_id
@@ -114,7 +85,7 @@ async def _(session: CommandSession):
 欢迎star~w!"""
         )
 
-@on_command('help', aliases = ['帮助', '如何使用ATRI', '机器人帮助'], only_to_me = False)
+@on_command('help', aliases = ['帮助', '如何使用ATRI', '机器人帮助', '菜单'], only_to_me = False)
 async def _(session: CommandSession):
     user = session.event.user_id
     group = session.event.group_id
@@ -170,3 +141,5 @@ async def _():
         RepoList = []
     except:
         await bot.send_private_msg(user_id = master, message = f'红茶重置失败...请手动重启ATRI以重置红茶...') # type: ignore
+        return
+    await bot.send_private_msg(user_id = master, message = '红茶重置成功！') # type: ignore
