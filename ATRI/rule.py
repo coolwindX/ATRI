@@ -2,13 +2,10 @@ import datetime
 from random import choice
 
 from nonebot.rule import Rule
-from nonebot.adapters.cqhttp.event import Event
 from nonebot.adapters.cqhttp import GroupMessageEvent, PokeNotifyEvent
 
 from .config import config
-from .service.limit import Limit
-from .service.banlist import BanSystem
-from .service import Service
+from .service import Service as sv
 from .utils.list import count_list, del_list_aim
 from .utils.apscheduler import scheduler, DateTrigger
 
@@ -16,22 +13,23 @@ from .utils.apscheduler import scheduler, DateTrigger
 def is_in_service(service: str) -> Rule:
     async def _is_in_service(bot, event, state) -> bool:
         if isinstance(event, GroupMessageEvent):
-            return await Limit.auth_service(service, event.group_id)
-        return await Limit.auth_service(service)
+            return sv.auth_service(service, event.group_id)
+        else:
+            return sv.auth_service(service, None)
     
     return Rule(_is_in_service)
 
 
-def is_in_banlist() -> Rule:
+def is_block() -> Rule:
     async def _is_in_banlist(bot, event, state) -> bool:
-        return BanSystem.is_in_list(str(event.get_user_id()))
+        return sv.BlockSystem.auth_user(int(event.get_user_id()))
     
     return Rule(_is_in_banlist)
 
 
 def is_in_dormant() -> Rule:
     async def _is_in_dormant(bot, event, state) -> bool:
-        return Service.is_dormant()
+        return sv.Dormant.is_dormant()
     
     return Rule(_is_in_dormant)
 

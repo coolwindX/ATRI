@@ -2,10 +2,10 @@
 Idea from: https://github.com/cczu-osa/aki
 """
 import json
-from nonebot.plugin import on_command
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 
-from ATRI.rule import is_in_banlist, is_in_dormant
+from ATRI.service import Service as sv
+from ATRI.rule import is_block, is_in_dormant
 from ATRI.utils.request import post_bytes
 from ATRI.exceptions import RequestTimeOut
 
@@ -40,11 +40,24 @@ SUPPORTED_LANGUAGES = {
 }
 
 
-code_runner = on_command("/code", rule=is_in_banlist() & is_in_dormant())
+code_runner = sv.on_command(
+    name="运行代码",
+    cmd="/code",
+    rule=is_block() & is_in_dormant()
+)
 
 @code_runner.handle()
 async def _code_runner(bot: Bot, event: MessageEvent) -> None:
     msg = str(event.message).split("\n")
+    
+    if msg[0] == "list":
+        msg0 = "咱现在支持的语言如下：\n"
+        msg0 += ", ".join(map(str, SUPPORTED_LANGUAGES.keys()))
+            
+        await code_runner.finish(msg0)
+    elif not msg[0]:
+        await code_runner.finish("请键入/help以获取更多支持...")
+    
     laug = msg[0].replace("\r", "")
     if laug not in SUPPORTED_LANGUAGES:
         await code_runner.finish("该语言暂不支持...")
@@ -77,11 +90,11 @@ async def _code_runner(bot: Bot, event: MessageEvent) -> None:
         out, remained_out = out[:60 * 10], out[60 * 10:]
 
         if remained_lines or remained_out:
-            out += f"\n（输出过多，已忽略剩余内容）"
+            out += f"\n（太多了太多了...）"
 
         if out:
             await bot.send(event, f"{k}:\n\n{out}")
             sent = True
     
     if not sent:
-        await code_runner.finish("运行完成，没有任何输出")
+        await code_runner.finish("Running success! Nothing print.")

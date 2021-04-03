@@ -2,16 +2,15 @@ import os
 import json
 from pathlib import Path
 from random import choice, randint
-
-from nonebot.plugin import on_command
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 
 from ATRI.rule import (
-    is_in_banlist,
+    is_block,
     is_in_dormant,
     is_in_service,
     to_bot
 )
+from ATRI.service import Service as sv
 from ATRI.exceptions import LoadingError
 from ATRI.utils.list import count_list, del_list_aim
 
@@ -22,10 +21,11 @@ sick_list = []
 
 __plugin_name__ = 'hitokoto'
 
-hitokoto = on_command(
-    "一言",
+hitokoto = sv.on_command(
+    name="Hitokoto",
+    cmd="一言",
     aliases={"抑郁一下", "网抑云"},
-    rule=is_in_banlist() & is_in_dormant()
+    rule=is_block() & is_in_dormant()
     & is_in_service(__plugin_name__) & to_bot()
 )
 

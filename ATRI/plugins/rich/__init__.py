@@ -1,14 +1,13 @@
 import re
 import json
 from aiohttp.client import ClientSession
-
 from nonebot.adapters.cqhttp import Bot, MessageEvent
-from nonebot.plugin import on_message
 
+from ATRI.service import Service as sv
 from ATRI.utils.request import get_bytes
 from ATRI.utils.list import count_list, del_list_aim
 from ATRI.rule import (
-    is_in_banlist,
+    is_block,
     is_in_dormant,
 )
 
@@ -18,14 +17,15 @@ from .data_source import dec
 waiting_list = []
 
 
-bilibili_rich = on_message(
-    rule=is_in_banlist() & is_in_dormant()
+bilibili_rich = sv.on_message(
+    rule=is_block() & is_in_dormant()
 )
+sv.manual_reg_service("监听b站小程序")
 
 @bilibili_rich.handle()
 async def _bilibili_rich(bot: Bot, event: MessageEvent) -> None:
     global waiting_list
-    msg = str(event.raw_message)
+    msg = str(event.raw_message).replace("\\", "")
     user = event.user_id
     bv = False
     
@@ -45,9 +45,9 @@ async def _bilibili_rich(bot: Bot, event: MessageEvent) -> None:
             except:
                 return
     else:
-        bv_url = re.findall(r"(..........b23...\S+\=)", msg)
-        bv_url = bv_url[0].replace("\\", "")
-        print(bv_url)
+        patt = r"(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+"
+        bv_url = re.findall(patt, msg)
+        bv_url = bv_url[3]
         async with ClientSession() as session:
             async with session.get(
                 url=bv_url) as r:

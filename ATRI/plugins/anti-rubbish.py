@@ -7,7 +7,7 @@ from nonebot.plugin import on_command, on_message
 from nonebot.adapters.cqhttp import Bot, GroupMessageEvent
 
 from ATRI.log import logger
-from ATRI.rule import is_in_banlist
+from ATRI.rule import is_block
 from ATRI.config import nonebot_config
 from ATRI.utils.file import write_file
 from ATRI.utils.apscheduler import scheduler
@@ -42,7 +42,7 @@ async def _anti_rubbish(bot: Bot, event: GroupMessageEvent) -> None:
                 f"GET 吃屎人 {user}[@群{group}] 第{noob_data[user][key]}次: {msg}")
 
 
-rubbish = on_command("/rubbish", rule=is_in_banlist())
+rubbish = on_command("/rubbish", rule=is_block())
 
 @rubbish.handle()
 async def _rubbish(bot: Bot, event: GroupMessageEvent) -> None:
@@ -64,7 +64,7 @@ async def _rubbish(bot: Bot, event: GroupMessageEvent) -> None:
                 f"吃过厕所自助餐的有：\n"
             ) + noob_list
             await rubbish.finish(msg)
-    
+
     elif cmd[0] == "read":
         try:
             user = cmd[1]

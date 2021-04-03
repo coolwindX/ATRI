@@ -1,13 +1,12 @@
 from nonebot.permission import SUPERUSER
-from nonebot.plugin import on_command
 from nonebot.typing import T_State
 from nonebot.adapters.cqhttp import (
     Bot,
-    MessageEvent,
-    GroupMessageEvent
+    MessageEvent
 )
 
-from ATRI.rule import is_in_banlist
+from ATRI.service import Service as sv
+from ATRI.rule import is_block
 from ATRI.config import nonebot_config
 from ATRI.utils.apscheduler import scheduler
 from ATRI.utils.list import count_list
@@ -16,7 +15,11 @@ from ATRI.utils.list import count_list
 repo_list = []
 
 
-repo = on_command("来杯红茶", rule=is_in_banlist())
+repo = sv.on_command(
+    name="给维护者留言",
+    cmd="来杯红茶",
+    rule=is_block()
+)
 
 @repo.handle()
 async def _repo(bot: Bot, event: MessageEvent, state: T_State) -> None:
@@ -54,7 +57,11 @@ async def _() -> None:
     repo_list = []
 
 
-reset_repo = on_command("重置红茶", permission=SUPERUSER)
+reset_repo = sv.on_command(
+    name="重置给维护者留言次数",
+    cmd="重置红茶",
+    permission=SUPERUSER
+)
 
 @reset_repo.handle()
 async def _reset_repo(bot: Bot, event: MessageEvent) -> None:

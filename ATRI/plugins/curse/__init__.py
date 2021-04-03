@@ -1,8 +1,8 @@
-from nonebot.plugin import on_command
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 
+from ATRI.service import Service as sv
 from ATRI.rule import (
-    is_in_banlist,
+    is_block,
     is_in_dormant,
     is_in_service
 )
@@ -17,10 +17,11 @@ sick_list = []
 
 __plugin_name__ = 'curse'
 
-curse = on_command(
-    "口臭一下",
+curse = sv.on_command(
+    name="口臭",
+    cmd="口臭一下",
     aliases={"口臭", "骂我"},
-    rule=is_in_banlist() & is_in_dormant()
+    rule=is_block() & is_in_dormant()
     & is_in_service(__plugin_name__)
 )
 

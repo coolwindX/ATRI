@@ -1,3 +1,4 @@
+import os
 import time
 import json
 import shutil
@@ -5,7 +6,6 @@ from pathlib import Path
 from random import choice
 
 from nonebot.adapters import Bot
-from nonebot.plugin import on_notice, on_request
 from nonebot.adapters.cqhttp.message import Message
 from nonebot.adapters.cqhttp import (
     FriendRequestEvent,
@@ -20,15 +20,19 @@ from nonebot.adapters.cqhttp import (
     FriendRecallNoticeEvent
 )
 
+import ATRI
 from ATRI.log import logger
 from ATRI.exceptions import WriteError
 from ATRI.config import nonebot_config
-from ATRI.rule import is_in_banlist
-from ATRI.service.httppost import HttpPost
-from main import driver
+from ATRI.rule import is_block
+from ATRI.service import Service as sv
 
 
-PLUGIN_INFO_DIR = Path('.') / 'ATRI' / 'data' / 'service' / 'plugins'
+PLUGIN_INFO_DIR = Path('.') / 'ATRI' / 'data' / 'service' / 'services'
+
+
+driver = ATRI.driver()
+
 
 @driver.on_startup
 async def startup() -> None:
@@ -45,8 +49,8 @@ async def shutdown() -> None:
     except:
         repo = (
             '清理插件信息失败',
-            '请前往 ATRI/data/service 下',
-            '将 plugins 整个文件夹删除'
+            '请前往 ATRI/data/service/services 下',
+            '将 services 整个文件夹删除'
         )
         logger.error(repo)
         time.sleep(10)
@@ -56,7 +60,7 @@ async def shutdown() -> None:
 @driver.on_bot_connect
 async def connect(bot) -> None:
     for superuser in nonebot_config["superusers"]:
-        await HttpPost.send_private_msg(
+        await sv.NetworkPost.send_private_msg(
             int(superuser),
             "WebSocket 成功连接，数据开始传输。"
         )
@@ -66,7 +70,7 @@ async def connect(bot) -> None:
 async def disconnect(bot) -> None:
     for superuser in nonebot_config["superusers"]:
         try:
-            await HttpPost.send_private_msg(
+            await sv.NetworkPost.send_private_msg(
                 int(superuser),
                 "WebSocket 貌似断开了呢..."
             )
@@ -75,9 +79,10 @@ async def disconnect(bot) -> None:
 
 
 ESSENTIAL_DIR = Path('.') / 'ATRI' / 'data' / 'database' / 'essential'
+os.makedirs(ESSENTIAL_DIR, exist_ok=True)
 
 # 处理：好友请求
-request_friend_event = on_request(rule=is_in_banlist())
+request_friend_event = sv.on_request("Friends request", rule=is_block())
 
 @request_friend_event.handle()
 async def _request_friend_event(bot, event: FriendRequestEvent) -> None:
@@ -110,14 +115,14 @@ async def _request_friend_event(bot, event: FriendRequestEvent) -> None:
             f"申请信息：{event.comment}\n"
             f"申请码：{event.flag}"
         )
-        await HttpPost.send_private_msg(
+        await sv.NetworkPost.send_private_msg(
             user_id=int(superuser),
             message=msg
         )
 
 
 # 处理：邀请入群，如身为管理，还附有入群请求
-request_group_event = on_request(rule=is_in_banlist())
+request_group_event = sv.on_request("Group request",rule=is_block())
 
 @request_group_event.handle()
 async def _request_group_event(bot, event: GroupRequestEvent) -> None:
@@ -152,14 +157,14 @@ async def _request_group_event(bot, event: GroupRequestEvent) -> None:
             f"申请信息：{event.comment}\n"
             f"申请码：{event.flag}"
         )
-        await HttpPost.send_private_msg(
+        await sv.NetworkPost.send_private_msg(
             user_id=int(superuser),
             message=msg
         )
         
 
 # 处理群成员变动
-group_member_event = on_notice()
+group_member_event = sv.on_notice("Group member change")
 
 @group_member_event.handle()
 async def _group_member_event(bot: Bot, event) -> None:
@@ -177,7 +182,7 @@ async def _group_member_event(bot: Bot, event) -> None:
                 f"咱被群 {event.group_id} 里的 {event.operator_id} 扔出来了..."
             )
             for superuser in nonebot_config["superusers"]:
-                await HttpPost.send_private_msg(
+                await sv.NetworkPost.send_private_msg(
                     user_id=int(superuser),
                     message=msg
                 )
@@ -186,20 +191,20 @@ async def _group_member_event(bot: Bot, event) -> None:
 
 
 # 处理群管理事件
-group_admin_event = on_notice()
+group_admin_event = sv.on_notice("Group admin change")
 
 @group_admin_event.handle()
 async def _group_admin_event(bot: Bot, event: GroupAdminNoticeEvent) -> None:
     if event.is_tome():
         for superuser in nonebot_config["superusers"]:
-            await HttpPost.send_private_msg(
+            await sv.NetworkPost.send_private_msg(
                 user_id=int(superuser),
                 message=f"好欸！主人！我在群 {event.group_id} 成为了管理！！"
             )
 
 
 # 处理群禁言事件
-group_ban_event = on_notice()
+group_ban_event = sv.on_notice("Group ban change")
 
 @group_ban_event.handle()
 async def _group_ban_event(bot: Bot, event: GroupBanNoticeEvent) -> None:
@@ -211,7 +216,7 @@ async def _group_ban_event(bot: Bot, event: GroupBanNoticeEvent) -> None:
                 f"时长...是 {event.duration} 秒"
             )
             for superuser in nonebot_config["superusers"]:
-                await HttpPost.send_private_msg(
+                await sv.NetworkPost.send_private_msg(
                     user_id=int(superuser),
                     message=msg
                 )
@@ -221,14 +226,14 @@ async def _group_ban_event(bot: Bot, event: GroupBanNoticeEvent) -> None:
                 f"咱在群 {event.group_id} 被 {event.operator_id} 上的口球解除了！"
             )
             for superuser in nonebot_config["superusers"]:
-                await HttpPost.send_private_msg(
+                await sv.NetworkPost.send_private_msg(
                     user_id=int(superuser),
                     message=msg
                 )
 
 
 # 处理群红包运气王事件
-lucky_read_bag_event = on_notice()
+lucky_read_bag_event = sv.on_notice("Group read bag winner")
 
 @lucky_read_bag_event.handle()
 async def _lucky_read_bag_event(bot, event: LuckyKingNotifyEvent) -> None:
@@ -240,7 +245,7 @@ async def _lucky_read_bag_event(bot, event: LuckyKingNotifyEvent) -> None:
 
 
 # 处理群文件上传事件
-group_file_upload_event = on_notice()
+group_file_upload_event = sv.on_notice("Group file change")
 
 @group_file_upload_event.handle()
 async def _group_file_upload_event(bot,
@@ -249,7 +254,7 @@ async def _group_file_upload_event(bot,
 
 
 # 处理撤回事件
-recall_event = on_notice()
+recall_event = sv.on_notice("Group member recall")
 
 @recall_event.handle()
 async def _recall_event(bot: Bot, event) -> None:
@@ -271,7 +276,7 @@ async def _recall_event(bot: Bot, event) -> None:
 
         await bot.send(event, "咱看到惹~！")
         for superuser in nonebot_config["superusers"]:
-            await HttpPost.send_private_msg(
+            await sv.NetworkPost.send_private_msg(
                 user_id=int(superuser),
                 message=msg
             )
@@ -293,7 +298,7 @@ async def _recall_event(bot: Bot, event) -> None:
         )
 
         for superuser in nonebot_config["superusers"]:
-            await HttpPost.send_private_msg(
+            await sv.NetworkPost.send_private_msg(
                 user_id=int(superuser),
                 message=msg
             )
