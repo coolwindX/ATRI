@@ -6,7 +6,6 @@ from pathlib import Path
 from random import sample
 from typing import Optional
 from traceback import format_exc
-from pydantic.main import BaseModel
 
 from nonebot.adapters.cqhttp import Bot, Event
 from nonebot.matcher import Matcher
@@ -88,7 +87,7 @@ async def _track_error(matcher: Matcher,
         prompt = Error.prompt or Error.__class__.__name__
         track_id = Error.track_id
     except Exception as Error:
-        prompt = "Unknown ERROR-" + Error.__class__.__name__
+        prompt = "Unknown ERROR->" + Error.__class__.__name__
         track_id = _save_error(prompt, format_exc())
 
     logger.debug(f"A bug has been cumming, trace ID: {track_id}")
@@ -96,7 +95,7 @@ async def _track_error(matcher: Matcher,
         "[WARNING] 这是一个错误... ;w;\n"
         f"追踪ID: {track_id}\n"
         f"触发原因: {prompt}\n"
-        "键入 来杯红茶 以联系维护者"
+        "键入 /来杯红茶 以联系维护者"
     )
     
     await bot.send(event, msg)

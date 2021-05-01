@@ -4,12 +4,7 @@ from pathlib import Path
 from random import choice, randint
 from nonebot.adapters.cqhttp import Bot, MessageEvent
 
-from ATRI.rule import (
-    is_block,
-    is_in_dormant,
-    is_in_service,
-    to_bot
-)
+from ATRI.rule import is_in_service, to_bot
 from ATRI.service import Service as sv
 from ATRI.exceptions import LoadingError
 from ATRI.utils.list import count_list, del_list_aim
@@ -19,20 +14,32 @@ HITOKOTO_DIR = Path('.') / 'ATRI' / 'data' / 'database' / 'hitokoto'
 sick_list = []
 
 
-__plugin_name__ = 'hitokoto'
+__doc__ = """
+抑郁一下
+权限组：所有人
+用法：
+  @一言
+  @抑郁一下
+  @网抑云
+补充：
+  @：at Bot
+"""
 
 hitokoto = sv.on_command(
-    name="Hitokoto",
-    cmd="一言",
-    aliases={"抑郁一下", "网抑云"},
-    rule=is_block() & is_in_dormant()
-    & is_in_service(__plugin_name__) & to_bot()
+    cmd='一言',
+    docs=__doc__,
+    rule=is_in_service('一言')
 )
 
 @hitokoto.handle()
 async def _hitokoto(bot: Bot, event: MessageEvent) -> None:
     global sick_list
+    msg = str(event.message)
     user = event.get_user_id()
+    hito_key = ['一言', '抑郁一下', '网抑云']
+    
+    if msg not in hito_key:
+        return
 
     if count_list(sick_list, user) == 3:
         sick_list.append(user)

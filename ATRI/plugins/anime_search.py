@@ -7,21 +7,39 @@ from nonebot.adapters.cqhttp.message import Message
 from nonebot.typing import T_State
 
 from ATRI.service import Service as sv
-from ATRI.rule import is_block, is_in_dormant
+from ATRI.rule import is_in_service
 from ATRI.exceptions import RequestTimeOut
 from ATRI.utils.request import get_bytes
-
-from .data_source import to_simple_string
+from ATRI.utils.translate import to_simple_string
 
 
 URL = "https://trace.moe/api/search?url="
 
 
+__doc__ = """
+以图搜番
+权限组：所有人
+用法：
+  以图搜番 (pic)
+"""
+
 anime_search = sv.on_command(
-    name="以图搜番",
-    cmd="/anime",
-    rule=is_block() & is_in_dormant()
+    cmd="以图搜番",
+    docs=__doc__,
+    rule=is_in_service('以图搜番')
 )
+
+@anime_search.args_parser  # type: ignore
+async def _load_anime(bot: Bot, event: MessageEvent, state: T_State) -> None:
+    msg = str(event.message)
+    quit_list = ['算了', '罢了', '不搜了']
+    if msg in quit_list:
+        await anime_search.finish('好吧...')
+    
+    if not msg:
+        await anime_search.reject('图呢？')
+    else:
+        state['pic_anime'] = msg
 
 @anime_search.handle()
 async def _anime_search(bot: Bot,
@@ -29,13 +47,13 @@ async def _anime_search(bot: Bot,
                         state: T_State) -> None:
     msg = str(event.message).strip()
     if msg:
-        state["msg"] = msg
+        state['pic_anime'] = msg
 
-@anime_search.got("msg", prompt="请发送咱一张图片~！")
-async def _(bot: Bot,
+@anime_search.got('pic_anime', prompt='图呢？')
+async def _deal_search(bot: Bot,
             event: MessageEvent,
             state: T_State) -> None:
-    msg = state["msg"]
+    msg = state['pic_anime']
     img = re.findall(r"url=(.*?)]", msg)
     if not img:
         await anime_search.reject("请发送图片而不是其它东西！！")
@@ -47,7 +65,7 @@ async def _(bot: Bot,
     
     data = json.loads(req)["docs"]
     try:
-        d = {}
+        d = dict()
         for i in range(len(data)):
             if data[i]["title_chinese"] in d.keys():
                 d[data[i]["title_chinese"]][0] += data[i]["similarity"]
@@ -76,7 +94,7 @@ async def _(bot: Bot,
     
     t = 0
     
-    msg0 = f"{MessageSegment.at(event.user_id)}\nResult [{len(d)}]:"
+    msg0 = f"> {MessageSegment.at(event.user_id)}"
     for i in result:
         t += 1
         s = "%.2f%%" % (i[1][0] * 100)
