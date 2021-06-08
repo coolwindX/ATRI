@@ -4,11 +4,10 @@
 アトリは、高性能ですから！
 
 [![time tracker](https://wakatime.com/badge/github/Kyomotoi/ATRI.svg)](https://wakatime.com/badge/github/Kyomotoi/ATRI)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/06e164beddd84e2c90a8f0e84e00c467)](https://www.codacy.com/gh/Kyomotoi/ATRI/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Kyomotoi/ATRI&amp;utm_campaign=Badge_Grade)
 
 [![](https://img.shields.io/github/license/Kyomotoi/ATRI?style=for-the-badge)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![](https://img.shields.io/badge/Chat-567297659-blue?style=for-the-badge)](https://jq.qq.com/?_wv=1027&k=a89kfKQE)
-[![](https://img.shields.io/badge/DOCS-ATRI--docs-important?style=for-the-badge)](https://atri.0w0.ink/#/)
+[![](https://img.shields.io/badge/DOCS-ATRI--docs-important?style=for-the-badge)](https://github.com/Kyomotoi/ATRI/wiki)
 
 ### 关于
 本项目名称、灵感均来自 [ANIPLEX](https://aniplex-exe.com/) 发行的 [ATRI-My Dear Moments-](https://atri-mdm.com/)
@@ -25,9 +24,17 @@
 
 实现方式为 `go-cqhttp 或其它遵守Onebot标准的协议` + `NoneBot2`。
 
-由于项目特殊性，会随机进行更新，通常推荐`clone main`分支，如急需体验新的功能/~~BUG~~，你可以选择`clone dev`
+由于项目特殊性，故随机进行更新。更新日志：[传送门](changelog.md)
 
-**请注意：分支`dev`存在不确定因素，包括`造成机器卡顿、饥饿行为以及其它未知魔法`**
+### 功能列表
+请在群内对机器人发送`/help`以获取帮助
+
+**TODO**：
+  - [ ] 网页控制台
+  - [ ] RSS订阅
+  - [ ] B站动态订阅
+  - [ ] 冷重启
+  - [ ] 词库（搭配nlp）
 
 ### 特别感谢
 [Richard Chien](https://github.com/richardchien): [Onebot标准](https://github.com/howmanybots/onebot)
